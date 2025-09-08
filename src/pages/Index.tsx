@@ -1,13 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { Layout } from "@/components/Layout";
+import { AppointmentTracker } from "@/components/AppointmentTracker";
+import { SpiffTracker } from "@/components/SpiffTracker";
+import { WeeklyReports } from "@/components/WeeklyReports";
+import { Statistics } from "@/components/Statistics";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState("appointments");
+
+  const renderActiveTab = () => {
+    switch (activeTab) {
+      case "appointments":
+        return <AppointmentTracker />;
+      case "spiff":
+        return <SpiffTracker />;
+      case "weekly":
+        return <WeeklyReports />;
+      case "stats":
+        return <Statistics />;
+      default:
+        return <AppointmentTracker />;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+      {renderActiveTab()}
+    </Layout>
   );
 };
 
