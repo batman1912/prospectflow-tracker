@@ -19,8 +19,9 @@ interface LayoutProps {
 
 const tabs = [
   { id: "appointments", label: "Appointments", icon: Calendar },
-  { id: "spiff", label: "SPIFF Tracker", icon: DollarSign },
+  { id: "meetings", label: "Meetings List", icon: FileText },
   { id: "weekly", label: "Weekly Reports", icon: FileText },
+  { id: "spiff", label: "SPIFF Tracker", icon: DollarSign },
   { id: "stats", label: "Statistics", icon: BarChart3 },
 ];
 
@@ -38,7 +39,7 @@ export function Layout({ children, activeTab, onTabChange }: LayoutProps) {
                 <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <h1 className="text-xl font-bold text-foreground">SDR Tracker</h1>
+                <h1 className="text-xl font-bold text-foreground">Crank Software APMT Tracker</h1>
               </div>
             </div>
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,29 +25,50 @@ interface WeeklyMeeting {
   location: string;
 }
 
-export function WeeklyReports() {
-  const [meetings, setMeetings] = useState<WeeklyMeeting[]>([
-    {
-      id: "1",
-      week: "Week 1 (1-3rd Jan)",
-      month: "January",
-      year: "2025",
-      firstName: "Manikant",
-      lastName: "Ojha",
-      companyName: "TechCorp Inc",
-      title: "VP Sales",
-      email: "manikant@techcorp.com",
-      contactNo: "+1-555-0123",
-      assignedTo: "John Smith (AE)",
-      location: "New York, NY"
-    }
-  ]);
+interface WeeklyReportsProps {
+  meetings: WeeklyMeeting[];
+  appointments: any[];
+}
 
+export function WeeklyReports({ meetings: propMeetings, appointments }: WeeklyReportsProps) {
+  const [meetings, setMeetings] = useState<WeeklyMeeting[]>(propMeetings || []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<WeeklyMeeting>>({});
   const [selectedMonth, setSelectedMonth] = useState("January");
   const [selectedYear, setSelectedYear] = useState("2025");
+  const [weekDescription, setWeekDescription] = useState("");
+
+  // Helper function to get week from date
+  function getWeekFromDate(dateString: string): string {
+    const date = new Date(dateString);
+    const dayOfMonth = date.getDate();
+    
+    if (dayOfMonth <= 7) return "Week 1 (1-7th)";
+    if (dayOfMonth <= 14) return "Week 2 (8-14th)";
+    if (dayOfMonth <= 21) return "Week 3 (15-21st)";
+    if (dayOfMonth <= 28) return "Week 4 (22-28th)";
+    return "Week 5 (29-31st)";
+  }
+
+  // Convert appointments to weekly meetings format for integration
+  const appointmentsAsWeeklyMeetings = appointments.map(apt => ({
+    id: `apt-${apt.id}`,
+    week: getWeekFromDate(apt.scheduledFor),
+    month: new Date(apt.scheduledFor).toLocaleDateString('en-US', { month: 'long' }),
+    year: new Date(apt.scheduledFor).getFullYear().toString(),
+    firstName: apt.firstName,
+    lastName: apt.lastName,
+    companyName: apt.company,
+    title: apt.title,
+    email: apt.email,
+    contactNo: apt.number,
+    assignedTo: apt.sdrName ? `${apt.sdrName} (SDR)` : "Not Assigned",
+    location: apt.country
+  }));
+
+  // Combine manual meetings with appointment-generated meetings
+  const allMeetings = [...meetings, ...appointmentsAsWeeklyMeetings];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,9 +116,30 @@ export function WeeklyReports() {
     setIsDialogOpen(true);
   };
 
-  const filteredMeetings = meetings.filter(meeting => 
+  const filteredMeetings = allMeetings.filter(meeting => 
     meeting.month === selectedMonth && meeting.year === selectedYear
   );
+
+  // Calculate weekly statistics
+  const getWeeklyStats = () => {
+    const scheduled = filteredMeetings.length;
+    const conducted = appointments.filter(apt => 
+      apt.conducted && 
+      new Date(apt.scheduledFor).toLocaleDateString('en-US', { month: 'long' }) === selectedMonth &&
+      new Date(apt.scheduledFor).getFullYear().toString() === selectedYear
+    ).length;
+    
+    const companies = new Set(filteredMeetings.map(m => m.companyName)).size;
+    const noShows = appointments.filter(apt => 
+      apt.noShow && 
+      new Date(apt.scheduledFor).toLocaleDateString('en-US', { month: 'long' }) === selectedMonth &&
+      new Date(apt.scheduledFor).getFullYear().toString() === selectedYear
+    ).length;
+
+    return { scheduled, conducted, companies, noShows };
+  };
+
+  const weeklyStats = getWeeklyStats();
 
   const weekOptions = [
     "Week 1 (1-7th)",
@@ -118,7 +161,7 @@ export function WeeklyReports() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-2">Weekly Reports</h2>
-          <p className="text-muted-foreground">Track weekly meeting schedules and assignments</p>
+          <p className="text-muted-foreground">Track weekly meeting schedules and performance</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -272,6 +315,57 @@ export function WeeklyReports() {
         </Dialog>
       </div>
 
+      {/* Weekly Statistics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="shadow-soft">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-primary">{weeklyStats.scheduled}</div>
+            <p className="text-xs text-muted-foreground">Meetings Scheduled</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-soft">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-success">{weeklyStats.conducted}</div>
+            <p className="text-xs text-muted-foreground">Meetings Conducted</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-soft">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-accent">{weeklyStats.companies}</div>
+            <p className="text-xs text-muted-foreground">Unique Companies</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-soft">
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-destructive">{weeklyStats.noShows}</div>
+            <p className="text-xs text-muted-foreground">No Shows</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Week Description */}
+      <Card className="shadow-soft">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            Week Summary for {selectedMonth} {selectedYear}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div>
+            <Label htmlFor="weekDescription">How did the week go?</Label>
+            <Textarea
+              id="weekDescription"
+              placeholder="Describe how the week went, key achievements, challenges, and notable meetings..."
+              value={weekDescription}
+              onChange={(e) => setWeekDescription(e.target.value)}
+              rows={4}
+              className="mt-2"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Filter Controls */}
       <Card className="shadow-soft">
         <CardHeader>
@@ -312,6 +406,7 @@ export function WeeklyReports() {
         </CardContent>
       </Card>
 
+      {/* Meetings Table */}
       <Card className="shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -329,7 +424,7 @@ export function WeeklyReports() {
                   <TableHead>Company</TableHead>
                   <TableHead>Title</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Assigned to (AE)</TableHead>
+                  <TableHead>Assigned to</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -359,13 +454,15 @@ export function WeeklyReports() {
                       <TableCell>{meeting.assignedTo}</TableCell>
                       <TableCell>{meeting.location}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDialog(meeting)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
+                        {!meeting.id.startsWith('apt-') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDialog(meeting)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

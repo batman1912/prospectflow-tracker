@@ -24,34 +24,20 @@ interface Appointment {
   scheduledOn: string;
   scheduledFor: string;
   conducted: boolean;
+  noShow: boolean;
   opportunity: boolean;
   notes: string;
   rescheduleComments: string;
   meetingNotes: string;
+  sdrName: string;
 }
 
-export function AppointmentTracker() {
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: "1",
-      firstName: "Manikant",
-      lastName: "Ojha",
-      title: "VP Sales",
-      email: "manikant@company.com",
-      company: "TechCorp Inc",
-      number: "+1-555-0123",
-      linkedin: "linkedin.com/in/manikant-ojha",
-      country: "United States",
-      scheduledOn: "2024-01-15",
-      scheduledFor: "2024-01-20",
-      conducted: true,
-      opportunity: true,
-      notes: "High potential prospect",
-      rescheduleComments: "",
-      meetingNotes: "Great conversation about needs"
-    }
-  ]);
+interface AppointmentTrackerProps {
+  appointments: Appointment[];
+  onAppointmentChange: (appointments: Appointment[]) => void;
+}
 
+export function AppointmentTracker({ appointments, onAppointmentChange }: AppointmentTrackerProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Appointment>>({});
@@ -60,9 +46,10 @@ export function AppointmentTracker() {
     e.preventDefault();
     
     if (editingId) {
-      setAppointments(prev => prev.map(apt => 
+      const updatedAppointments = appointments.map(apt => 
         apt.id === editingId ? { ...apt, ...formData } as Appointment : apt
-      ));
+      );
+      onAppointmentChange(updatedAppointments);
       toast({ title: "Appointment updated successfully" });
     } else {
       const newAppointment: Appointment = {
@@ -78,12 +65,14 @@ export function AppointmentTracker() {
         scheduledOn: formData.scheduledOn || "",
         scheduledFor: formData.scheduledFor || "",
         conducted: formData.conducted || false,
+        noShow: formData.noShow || false,
         opportunity: formData.opportunity || false,
         notes: formData.notes || "",
         rescheduleComments: formData.rescheduleComments || "",
-        meetingNotes: formData.meetingNotes || ""
+        meetingNotes: formData.meetingNotes || "",
+        sdrName: formData.sdrName || ""
       };
-      setAppointments(prev => [...prev, newAppointment]);
+      onAppointmentChange([...appointments, newAppointment]);
       toast({ title: "Appointment added successfully" });
     }
     
@@ -214,10 +203,35 @@ export function AppointmentTracker() {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="sdrName">SDR Name</Label>
+                  <Input
+                    id="sdrName"
+                    value={formData.sdrName || ""}
+                    onChange={(e) => setFormData(prev => ({ ...prev, sdrName: e.target.value }))}
+                    placeholder="Enter SDR who booked this meeting"
+                    required
+                  />
+                </div>
+                <div>
                   <Label htmlFor="conducted">Conducted</Label>
                   <Select 
                     value={formData.conducted ? "true" : "false"} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, conducted: value === "true" }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="false">No</SelectItem>
+                      <SelectItem value="true">Yes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="noShow">No Show</Label>
+                  <Select 
+                    value={formData.noShow ? "true" : "false"} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, noShow: value === "true" }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -303,6 +317,7 @@ export function AppointmentTracker() {
                   <TableHead>Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Contact</TableHead>
+                  <TableHead>SDR</TableHead>
                   <TableHead>Scheduled For</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -343,11 +358,14 @@ export function AppointmentTracker() {
                         )}
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{appointment.sdrName || "Not Assigned"}</div>
+                    </TableCell>
                     <TableCell>{appointment.scheduledFor}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        <Badge variant={appointment.conducted ? "default" : "secondary"}>
-                          {appointment.conducted ? "Conducted" : "Pending"}
+                        <Badge variant={appointment.conducted ? "default" : appointment.noShow ? "destructive" : "secondary"}>
+                          {appointment.conducted ? "Conducted" : appointment.noShow ? "No Show" : "Pending"}
                         </Badge>
                         {appointment.opportunity && (
                           <Badge variant="outline" className="text-success border-success">
