@@ -264,6 +264,7 @@ export function AppointmentTracker({ appointments, onAppointmentChange }: Appoin
                     onChange={(e) => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="country">Country</Label>
                   <Input
@@ -439,11 +440,19 @@ export function AppointmentTracker({ appointments, onAppointmentChange }: Appoin
                           </div>
                         )}
                         {appointment.linkedin && (
-                          <div className="flex items-center gap-1 text-sm">
-                            <Globe className="w-3 h-3" />
-                            LinkedIn
-                          </div>
-                        )}
+  <div className="flex items-center gap-1 text-sm">
+    <Globe className="w-3 h-3" />
+    <a
+      href={appointment.linkedin.startsWith("http") ? appointment.linkedin : `https://${appointment.linkedin}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 hover:underline"
+    >
+      LinkedIn
+    </a>
+  </div>
+)}
+
                       </div>
                     </TableCell>
                     <TableCell>
