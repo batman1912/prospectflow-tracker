@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Calendar, Phone, Mail, Globe } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Appointment {
   id: string;
@@ -41,44 +42,131 @@ export function AppointmentTracker({ appointments, onAppointmentChange }: Appoin
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Appointment>>({});
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingId) {
-      const updatedAppointments = appointments.map(apt => 
-        apt.id === editingId ? { ...apt, ...formData } as Appointment : apt
-      );
-      onAppointmentChange(updatedAppointments);
-      toast({ title: "Appointment updated successfully" });
-    } else {
-      const newAppointment: Appointment = {
-        id: Date.now().toString(),
-        firstName: formData.firstName || "",
-        lastName: formData.lastName || "",
-        title: formData.title || "",
-        email: formData.email || "",
-        company: formData.company || "",
-        number: formData.number || "",
-        linkedin: formData.linkedin || "",
-        country: formData.country || "",
-        scheduledOn: formData.scheduledOn || "",
-        scheduledFor: formData.scheduledFor || "",
-        conducted: formData.conducted || false,
-        noShow: formData.noShow || false,
-        opportunity: formData.opportunity || false,
-        notes: formData.notes || "",
-        rescheduleComments: formData.rescheduleComments || "",
-        meetingNotes: formData.meetingNotes || "",
-        sdrName: formData.sdrName || ""
-      };
-      onAppointmentChange([...appointments, newAppointment]);
-      toast({ title: "Appointment added successfully" });
+  // Load appointments from Supabase on component mount
+  useEffect(() => {
+    loadAppointments();
+  }, []);
+
+  const loadAppointments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform Supabase data to match component interface
+      const transformedData = data?.map(item => ({
+        id: item.id,
+        firstName: item.first_name,
+        lastName: item.last_name,
+        title: item.title || '',
+        email: item.email,
+        company: item.company,
+        number: item.number || '',
+        linkedin: item.linkedin || '',
+        country: item.country || '',
+        scheduledOn: item.scheduled_on ? new Date(item.scheduled_on).toISOString().split('T')[0] : '',
+        scheduledFor: item.scheduled_for ? new Date(item.scheduled_for).toISOString().split('T')[0] : '',
+        conducted: item.conducted || false,
+        noShow: item.no_show || false,
+        opportunity: item.opportunity || false,
+        notes: item.notes || '',
+        rescheduleComments: item.reschedule_comments || '',
+        meetingNotes: item.meeting_notes || '',
+        sdrName: item.sdr_name
+      })) || [];
+
+      onAppointmentChange(transformedData);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+      toast({ 
+        title: "Error loading appointments", 
+        description: "Please try again.",
+        variant: "destructive"
+      });
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
     
-    setIsDialogOpen(false);
-    setEditingId(null);
-    setFormData({});
+    try {
+      if (editingId) {
+        // Update existing appointment
+        const { error } = await supabase
+          .from('appointments')
+          .update({
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            title: formData.title,
+            email: formData.email,
+            company: formData.company,
+            number: formData.number,
+            linkedin: formData.linkedin,
+            country: formData.country,
+            scheduled_on: formData.scheduledOn ? new Date(formData.scheduledOn).toISOString() : null,
+            scheduled_for: formData.scheduledFor ? new Date(formData.scheduledFor).toISOString() : new Date().toISOString(),
+            conducted: formData.conducted || false,
+            no_show: formData.noShow || false,
+            opportunity: formData.opportunity || false,
+            notes: formData.notes,
+            reschedule_comments: formData.rescheduleComments,
+            meeting_notes: formData.meetingNotes,
+            sdr_name: formData.sdrName
+          })
+          .eq('id', editingId);
+
+        if (error) throw error;
+        toast({ title: "Appointment updated successfully" });
+      } else {
+        // Create new appointment
+        const { error } = await supabase
+          .from('appointments')
+          .insert({
+            first_name: formData.firstName || "",
+            last_name: formData.lastName || "",
+            title: formData.title,
+            email: formData.email || "",
+            company: formData.company || "",
+            number: formData.number,
+            linkedin: formData.linkedin,
+            country: formData.country,
+            scheduled_on: formData.scheduledOn ? new Date(formData.scheduledOn).toISOString() : new Date().toISOString(),
+            scheduled_for: formData.scheduledFor ? new Date(formData.scheduledFor).toISOString() : new Date().toISOString(),
+            conducted: formData.conducted || false,
+            no_show: formData.noShow || false,
+            opportunity: formData.opportunity || false,
+            notes: formData.notes,
+            reschedule_comments: formData.rescheduleComments,
+            meeting_notes: formData.meetingNotes,
+            sdr_name: formData.sdrName || ""
+          });
+
+        if (error) throw error;
+        toast({ title: "Appointment added successfully" });
+      }
+      
+      // Reload appointments from database
+      await loadAppointments();
+      
+      setIsDialogOpen(false);
+      setEditingId(null);
+      setFormData({});
+    } catch (error) {
+      console.error('Error saving appointment:', error);
+      toast({ 
+        title: "Error saving appointment", 
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openDialog = (appointment?: Appointment) => {
@@ -293,8 +381,8 @@ export function AppointmentTracker({ appointments, onAppointmentChange }: Appoin
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-gradient-primary text-primary-foreground hover:opacity-90">
-                  {editingId ? "Update" : "Add"} Appointment
+                <Button type="submit" className="bg-gradient-primary text-primary-foreground hover:opacity-90" disabled={loading}>
+                  {loading ? "Saving..." : editingId ? "Update" : "Add"} Appointment
                 </Button>
               </div>
             </form>
