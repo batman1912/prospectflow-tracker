@@ -14,7 +14,210 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          company: string
+          conducted: boolean | null
+          country: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          linkedin: string | null
+          meeting_notes: string | null
+          no_show: boolean | null
+          notes: string | null
+          number: string | null
+          opportunity: boolean | null
+          reschedule_comments: string | null
+          scheduled_for: string
+          scheduled_on: string
+          sdr_name: string
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company: string
+          conducted?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          linkedin?: string | null
+          meeting_notes?: string | null
+          no_show?: boolean | null
+          notes?: string | null
+          number?: string | null
+          opportunity?: boolean | null
+          reschedule_comments?: string | null
+          scheduled_for: string
+          scheduled_on?: string
+          sdr_name: string
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company?: string
+          conducted?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          linkedin?: string | null
+          meeting_notes?: string | null
+          no_show?: boolean | null
+          notes?: string | null
+          number?: string | null
+          opportunity?: boolean | null
+          reschedule_comments?: string | null
+          scheduled_for?: string
+          scheduled_on?: string
+          sdr_name?: string
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      spiffs: {
+        Row: {
+          additional_notes: string | null
+          amount: number
+          announced_by: string
+          approved: boolean | null
+          bdr_name: string
+          created_at: string | null
+          currency: string | null
+          date_announced: string
+          id: string
+          reason: string
+          updated_at: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          amount: number
+          announced_by: string
+          approved?: boolean | null
+          bdr_name: string
+          created_at?: string | null
+          currency?: string | null
+          date_announced: string
+          id?: string
+          reason: string
+          updated_at?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          amount?: number
+          announced_by?: string
+          approved?: boolean | null
+          bdr_name?: string
+          created_at?: string | null
+          currency?: string | null
+          date_announced?: string
+          id?: string
+          reason?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      weekly_meetings: {
+        Row: {
+          assigned_to: string
+          company_name: string
+          contact_no: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          location: string | null
+          month: string
+          title: string | null
+          updated_at: string | null
+          week: string
+          year: string
+        }
+        Insert: {
+          assigned_to: string
+          company_name: string
+          contact_no?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          location?: string | null
+          month: string
+          title?: string | null
+          updated_at?: string | null
+          week: string
+          year: string
+        }
+        Update: {
+          assigned_to?: string
+          company_name?: string
+          contact_no?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          location?: string | null
+          month?: string
+          title?: string | null
+          updated_at?: string | null
+          week?: string
+          year?: string
+        }
+        Relationships: []
+      }
+      weekly_reports: {
+        Row: {
+          companies_count: number | null
+          conducted_count: number | null
+          created_at: string | null
+          id: string
+          month: string
+          no_show_count: number | null
+          scheduled_count: number | null
+          updated_at: string | null
+          week: string
+          week_description: string | null
+          year: string
+        }
+        Insert: {
+          companies_count?: number | null
+          conducted_count?: number | null
+          created_at?: string | null
+          id?: string
+          month: string
+          no_show_count?: number | null
+          scheduled_count?: number | null
+          updated_at?: string | null
+          week: string
+          week_description?: string | null
+          year: string
+        }
+        Update: {
+          companies_count?: number | null
+          conducted_count?: number | null
+          created_at?: string | null
+          id?: string
+          month?: string
+          no_show_count?: number | null
+          scheduled_count?: number | null
+          updated_at?: string | null
+          week?: string
+          week_description?: string | null
+          year?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
