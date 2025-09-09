@@ -83,6 +83,42 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_statistics: {
+        Row: {
+          calls: number
+          connected_calls: number
+          created_at: string
+          date: string
+          emails: number
+          id: string
+          potential_appointments: number
+          sdr_name: string
+          updated_at: string
+        }
+        Insert: {
+          calls?: number
+          connected_calls?: number
+          created_at?: string
+          date: string
+          emails?: number
+          id?: string
+          potential_appointments?: number
+          sdr_name: string
+          updated_at?: string
+        }
+        Update: {
+          calls?: number
+          connected_calls?: number
+          created_at?: string
+          date?: string
+          emails?: number
+          id?: string
+          potential_appointments?: number
+          sdr_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       spiffs: {
         Row: {
           additional_notes: string | null
