@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Calendar, Phone, Mail, Globe } from "lucide-react";
+import { Plus, Edit, Calendar, Phone, Mail, Globe, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -43,6 +43,7 @@ export function AppointmentTracker({ appointments, onAppointmentChange }: Appoin
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Appointment>>({});
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Load appointments from Supabase on component mount
   useEffect(() => {
@@ -180,6 +181,76 @@ export function AppointmentTracker({ appointments, onAppointmentChange }: Appoin
     setIsDialogOpen(true);
   };
 
+  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const text = await file.text();
+      const lines = text.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim());
+      
+      const appointments = [];
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        
+        // Map CSV columns to our database structure
+        const appointment = {
+          first_name: values[headers.indexOf('First Name')] || '',
+          last_name: values[headers.indexOf('Last Name')] || '',
+          title: values[headers.indexOf('Title')] || '',
+          email: values[headers.indexOf('Email')] || '',
+          company: values[headers.indexOf('Company')] || '',
+          number: values[headers.indexOf('Number')] || '',
+          linkedin: values[headers.indexOf('LinkedIn')] || '',
+          country: values[headers.indexOf('Country')] || '',
+          scheduled_on: values[headers.indexOf('Appointment Scheduled on')] ? new Date(values[headers.indexOf('Appointment Scheduled on')]).toISOString() : new Date().toISOString(),
+          scheduled_for: values[headers.indexOf('Appointment Scheduled for')] ? new Date(values[headers.indexOf('Appointment Scheduled for')]).toISOString() : new Date().toISOString(),
+          conducted: values[headers.indexOf('Conducted')]?.toLowerCase() === 'true' || values[headers.indexOf('Conducted')]?.toLowerCase() === 'yes',
+          no_show: false, // Default to false since not in CSV
+          opportunity: values[headers.indexOf('Opportunity')]?.toLowerCase() === 'true' || values[headers.indexOf('Opportunity')]?.toLowerCase() === 'yes',
+          notes: values[headers.indexOf('Notes')] || '',
+          reschedule_comments: values[headers.indexOf('Reschedule Comments')] || '',
+          meeting_notes: values[headers.indexOf('Meeting Notes')] || '',
+          sdr_name: values[headers.indexOf('Account Executive')] || ''
+        };
+        
+        appointments.push(appointment);
+      }
+
+      // Insert all appointments in batch
+      const { error } = await supabase
+        .from('appointments')
+        .insert(appointments);
+
+      if (error) throw error;
+
+      toast({
+        title: "CSV uploaded successfully",
+        description: `Imported ${appointments.length} appointments`
+      });
+
+      // Reload appointments
+      await loadAppointments();
+      
+      // Clear the file input
+      event.target.value = '';
+    } catch (error) {
+      console.error('Error uploading CSV:', error);
+      toast({
+        title: "Error uploading CSV",
+        description: "Please check the file format and try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -187,17 +258,33 @@ export function AppointmentTracker({ appointments, onAppointmentChange }: Appoin
           <h2 className="text-2xl font-bold text-foreground mb-2">Appointment Tracker</h2>
           <p className="text-muted-foreground">Manage prospect appointments and track opportunities</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              onClick={() => openDialog()}
-              className="bg-gradient-primary text-primary-foreground hover:opacity-90"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Appointment
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <div className="flex gap-2">
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleCSVUpload}
+            className="hidden"
+            id="csv-upload"
+          />
+          <Button
+            variant="outline"
+            onClick={() => document.getElementById('csv-upload')?.click()}
+            disabled={uploading}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {uploading ? 'Uploading...' : 'Upload CSV'}
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                onClick={() => openDialog()}
+                className="bg-gradient-primary text-primary-foreground hover:opacity-90"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Appointment
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "Edit Appointment" : "Add New Appointment"}
@@ -388,7 +475,8 @@ export function AppointmentTracker({ appointments, onAppointmentChange }: Appoin
               </div>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <Card className="shadow-soft">
