@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Phone, Mail, Globe, Search, Filter } from "lucide-react";
+import { Calendar, Phone, Mail, Globe, Search, Filter, LayoutGrid, List } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Meeting {
   id: string;
@@ -36,6 +37,7 @@ export function MeetingsList({ meetings }: MeetingsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sdrFilter, setSdrFilter] = useState("all");
+  const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   // Get unique SDR names for filter
   const uniqueSDRs = Array.from(new Set(meetings.map(m => m.sdrName).filter(Boolean)));
@@ -81,9 +83,19 @@ export function MeetingsList({ meetings }: MeetingsListProps) {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Meetings List</h2>
-        <p className="text-muted-foreground">Comprehensive view of all scheduled meetings and their status</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Meetings List</h2>
+          <p className="text-muted-foreground">Comprehensive view of all scheduled meetings and their status</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant={viewMode === "list" ? "default" : "outline"} onClick={() => setViewMode("list")}>
+            <List className="w-4 h-4 mr-1" /> List View
+          </Button>
+          <Button variant={viewMode === "card" ? "default" : "outline"} onClick={() => setViewMode("card")}>
+            <LayoutGrid className="w-4 h-4 mr-1" /> Card View
+          </Button>
+        </div>
       </div>
 
       {/* Summary Stats */}
@@ -175,116 +187,157 @@ export function MeetingsList({ meetings }: MeetingsListProps) {
         </CardContent>
       </Card>
 
-      {/* Meetings Table */}
-      <Card className="shadow-soft">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-primary" />
-            All Meetings ({filteredMeetings.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Prospect</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>SDR</TableHead>
-                  <TableHead>Scheduled For</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMeetings.length === 0 ? (
+      {/* Meetings View */}
+      {viewMode === "list" ? (
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              All Meetings ({filteredMeetings.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                      No meetings found matching your criteria
-                    </TableCell>
+                    <TableHead>Prospect</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>SDR</TableHead>
+                    <TableHead>Scheduled For</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Notes</TableHead>
                   </TableRow>
-                ) : (
-                  filteredMeetings.map((meeting) => (
-                    <TableRow key={meeting.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{meeting.firstName} {meeting.lastName}</div>
-                          <div className="text-sm text-muted-foreground">{meeting.title}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{meeting.company}</div>
-                        <div className="text-sm text-muted-foreground">{meeting.country}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          {meeting.email && (
-                            <div className="flex items-center gap-1 text-sm">
-                              <Mail className="w-3 h-3" />
-                              {meeting.email}
-                            </div>
-                          )}
-                          {meeting.number && (
-                            <div className="flex items-center gap-1 text-sm">
-                              <Phone className="w-3 h-3" />
-                              {meeting.number}
-                            </div>
-                          )}
-                          {meeting.linkedin && (
-                            <div className="flex items-center gap-1 text-sm">
-                              <Globe className="w-3 h-3" />
-                              LinkedIn
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{meeting.sdrName || "Not Assigned"}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{new Date(meeting.scheduledFor).toLocaleDateString()}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Booked: {new Date(meeting.scheduledOn).toLocaleDateString()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          {getStatusBadge(meeting)}
-                          {meeting.opportunity && (
-                            <Badge variant="outline" className="text-primary border-primary">
-                              Opportunity
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="max-w-xs">
-                          {meeting.meetingNotes && (
-                            <div className="text-sm mb-1">
-                              <strong>Meeting:</strong> {meeting.meetingNotes}
-                            </div>
-                          )}
-                          {meeting.notes && (
-                            <div className="text-sm mb-1">
-                              <strong>Notes:</strong> {meeting.notes}
-                            </div>
-                          )}
-                          {meeting.rescheduleComments && (
-                            <div className="text-sm text-warning">
-                              <strong>Reschedule:</strong> {meeting.rescheduleComments}
-                            </div>
-                          )}
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredMeetings.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        No meetings found matching your criteria
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  ) : (
+                    filteredMeetings.map((meeting) => (
+                      <TableRow key={meeting.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{meeting.firstName} {meeting.lastName}</div>
+                            <div className="text-sm text-muted-foreground">{meeting.title}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{meeting.company}</div>
+                          <div className="text-sm text-muted-foreground">{meeting.country}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {meeting.email && (
+                              <div className="flex items-center gap-1 text-sm">
+                                <Mail className="w-3 h-3" />
+                                {meeting.email}
+                              </div>
+                            )}
+                            {meeting.number && (
+                              <div className="flex items-center gap-1 text-sm">
+                                <Phone className="w-3 h-3" />
+                                {meeting.number}
+                              </div>
+                            )}
+                            {meeting.linkedin && (
+                              <div className="flex items-center gap-1 text-sm">
+                                <Globe className="w-3 h-3" />
+                                LinkedIn
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{meeting.sdrName || "Not Assigned"}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{new Date(meeting.scheduledFor).toLocaleDateString()}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Booked: {new Date(meeting.scheduledOn).toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {getStatusBadge(meeting)}
+                            {meeting.opportunity && (
+                              <Badge variant="outline" className="text-primary border-primary">
+                                Opportunity
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-xs">
+                            {meeting.meetingNotes && (
+                              <div className="text-sm mb-1">
+                                <strong>Meeting:</strong> {meeting.meetingNotes}
+                              </div>
+                            )}
+                            {meeting.notes && (
+                              <div className="text-sm mb-1">
+                                <strong>Notes:</strong> {meeting.notes}
+                              </div>
+                            )}
+                            {meeting.rescheduleComments && (
+                              <div className="text-sm text-warning">
+                                <strong>Reschedule:</strong> {meeting.rescheduleComments}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredMeetings.length === 0 ? (
+            <p className="text-center text-muted-foreground col-span-full">No meetings found matching your criteria</p>
+          ) : (
+            filteredMeetings.map((meeting) => (
+              <Card key={meeting.id} className="shadow-soft">
+                <CardHeader>
+                  <CardTitle>{meeting.firstName} {meeting.lastName}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{meeting.title}</p>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div>
+                    <span className="font-medium">Company:</span> {meeting.company} ({meeting.country})
+                  </div>
+                  <div>
+                    <span className="font-medium">SDR:</span> {meeting.sdrName || "Not Assigned"}
+                  </div>
+                  <div>
+                    <span className="font-medium">Scheduled:</span> {new Date(meeting.scheduledFor).toLocaleDateString()}
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    {getStatusBadge(meeting)}
+                    {meeting.opportunity && (
+                      <Badge variant="outline" className="text-primary border-primary">
+                        Opportunity
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-sm">
+                    {meeting.meetingNotes && <div><strong>Meeting:</strong> {meeting.meetingNotes}</div>}
+                    {meeting.notes && <div><strong>Notes:</strong> {meeting.notes}</div>}
+                    {meeting.rescheduleComments && <div className="text-warning"><strong>Reschedule:</strong> {meeting.rescheduleComments}</div>}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
