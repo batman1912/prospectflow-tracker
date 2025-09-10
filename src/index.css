@@ -45,7 +45,7 @@
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
     --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
-    
+
     /* Professional shadows */
     --shadow-soft: 0 2px 8px hsl(var(--primary) / 0.08);
     --shadow-medium: 0 4px 16px hsl(var(--primary) / 0.12);
@@ -54,22 +54,17 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+}
 
+/* Dark mode */
 .dark {
   --background: 0 0% 0%;
   --foreground: 210 40% 98%;
@@ -115,7 +110,6 @@
   --sidebar-border: 0 0% 0%;
   --sidebar-ring: 0 0% 0%;
 }
-
 
 @layer base {
   * {
