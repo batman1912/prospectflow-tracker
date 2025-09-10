@@ -2,6 +2,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   Calendar, 
   DollarSign, 
@@ -43,36 +44,43 @@ export function Layout({ children, activeTab, onTabChange }: LayoutProps) {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <Button
-                    key={tab.id}
-                    variant={activeTab === tab.id ? "default" : "ghost"}
-                    onClick={() => onTabChange(tab.id)}
-                    className={cn(
-                      "flex items-center space-x-2 px-4 py-2",
-                      activeTab === tab.id && "bg-gradient-primary text-primary-foreground"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
-                  </Button>
-                );
-              })}
-            </nav>
+            <div className="flex items-center space-x-4">
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex space-x-1">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <Button
+                      key={tab.id}
+                      variant={activeTab === tab.id ? "default" : "ghost"}
+                      onClick={() => onTabChange(tab.id)}
+                      className={cn(
+                        "flex items-center space-x-2 px-4 py-2",
+                        activeTab === tab.id && "bg-gradient-primary text-primary-foreground"
+                      )}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{tab.label}</span>
+                    </Button>
+                  );
+                })}
+              </nav>
+              
+              {/* Theme Toggle */}
+              <ThemeToggle />
+            </div>
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
+            <div className="flex items-center space-x-2 md:hidden">
+              <ThemeToggle />
+              {/* Mobile Menu Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+            </div>
           </div>
 
           {/* Mobile Navigation */}
