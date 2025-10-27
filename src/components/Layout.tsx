@@ -40,7 +40,7 @@ export function Layout({ children, activeTab, onTabChange }: LayoutProps) {
                 <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <h1 className="text-xl font-bold text-foreground">Crank Software APMT Tracker</h1>
+                <h1 className="text-xl font-bold text-foreground">SynkFlow Technologies APMT Tracker</h1>
               </div>
             </div>
 
