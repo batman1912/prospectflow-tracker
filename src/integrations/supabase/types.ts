@@ -14,7 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          company: string | null
+          conducted: boolean | null
+          country: string | null
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          linkedin: string | null
+          meeting_notes: string | null
+          no_show: boolean | null
+          notes: string | null
+          number: string | null
+          opportunity: boolean | null
+          reschedule_comments: string | null
+          scheduled_for: string | null
+          scheduled_on: string
+          sdr_name: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          conducted?: boolean | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          linkedin?: string | null
+          meeting_notes?: string | null
+          no_show?: boolean | null
+          notes?: string | null
+          number?: string | null
+          opportunity?: boolean | null
+          reschedule_comments?: string | null
+          scheduled_for?: string | null
+          scheduled_on?: string
+          sdr_name?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          conducted?: boolean | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          linkedin?: string | null
+          meeting_notes?: string | null
+          no_show?: boolean | null
+          notes?: string | null
+          number?: string | null
+          opportunity?: boolean | null
+          reschedule_comments?: string | null
+          scheduled_for?: string | null
+          scheduled_on?: string
+          sdr_name?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      daily_statistics: {
+        Row: {
+          calls: number | null
+          connected_calls: number | null
+          created_at: string
+          date: string
+          emails: number | null
+          id: string
+          potential_appointments: number | null
+          sdr_name: string
+          updated_at: string
+        }
+        Insert: {
+          calls?: number | null
+          connected_calls?: number | null
+          created_at?: string
+          date: string
+          emails?: number | null
+          id?: string
+          potential_appointments?: number | null
+          sdr_name: string
+          updated_at?: string
+        }
+        Update: {
+          calls?: number | null
+          connected_calls?: number | null
+          created_at?: string
+          date?: string
+          emails?: number | null
+          id?: string
+          potential_appointments?: number | null
+          sdr_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
